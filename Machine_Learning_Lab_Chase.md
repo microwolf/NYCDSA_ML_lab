@@ -26,23 +26,31 @@ We will use Github for team collaboration and it can be broken down into followi
 - To sync all the changes made by your teammates to your own repository, follow the instructions under the "Keeping Your Fork Up to Date" section [here](https://gist.github.com/Chaser324/ce0505fbed06b947d962).
 
 - To understand fork, pull request and branch better, review [this video](https://youtu.be/_NrSWLQsDL4) in 1.25X speed.
+```{r}
+#Load datasets
+orders <- read.csv('orders.csv', stringsAsFactors=FALSE)
+returns <- read.csv('returns.csv', stringsAsFactors=FALSE)
 
-
+```
 ## Part I: Preprocessing and EDA
 
 - The data comes from a global e-retailer company, including orders from 2012 to 2015. Import the **Orders** dataset and do some basic EDA. 
 - For problem 1 to 3, we mainly focus on data cleaning and data visualizations. You can use all the packages that you are familiar with to conduct some plots and also provide **brief interpretations** about your findings.
 
+
+
 ### Problem 1: Dataset Import & Cleaning
 Check **"Profit"** and **"Sales"** in the dataset, convert these two columns to numeric type. 
+
 ```{r}
-setwd("~/Dropbox/nycdsa/exams/Machine_Learing_Lab/Machine_Learning_Lab")
 library(tidyverse)
-orders = read.csv("data/Orders.csv", stringsAsFactors = F)
-returns = read.csv("data/Returns.csv", stringsAsFactors = F)
+
+orders$Profit <- (gsub("\\$", "", orders$Profit))
+orders$Profit <- as.numeric(gsub("\\,", "", orders$Profit))
+orders$Sales <- (gsub("\\$", "", orders$Sales))
+orders$Sales <- as.numeric(gsub("\\,", "", orders$Sales))
 ```
-```{r}
-```
+
 ### Problem 2: Inventory Management
 - Retailers that depend on seasonal shoppers have a particularly challenging job when it comes to inventory management. Your manager is making plans for next year's inventory.
 - He wants you to answer the following questions:
@@ -51,6 +59,32 @@ returns = read.csv("data/Returns.csv", stringsAsFactors = F)
 
 - ***Hint:*** For each order, it has an attribute called `Quantity` that indicates the number of product in the order. If an order contains more than one product, there will be multiple observations of the same order.
 
+```{r}
+library(lubridate)
+
+#Convert Order column to date format
+orders$Order.Date <- as.Date(orders$Order.Date, "%m/%d/%y")
+
+#Create column with seasons based 
+orders <- orders %>% mutate(Season.Order = ifelse(month(orders$Order.Date) %in% c(1,2,12), 'Winter', ifelse(month(orders$Order.Date) %in% c(3,4,5), 'Spring', ifelse(month(orders$Order.Date) %in% c(6,7,8), 'Summer', 'Fall'))))
+
+#
+orders %>% group_by(Season.Order) %>% summarise(sum(Quantity))
+
+#Convert Shipping column to date format
+orders$Ship.Date <- as.Date(orders$Ship.Date, "%m/%d/%y")
+
+#Create column with seasons based 
+orders <- orders %>% mutate(Season.Ship = ifelse(month(orders$Ship.Date) %in% c(1,2,12), 'Winter', ifelse(month(orders$Ship.Date) %in% c(3,4,5), 'Spring', ifelse(month(orders$Ship.Date) %in% c(6,7,8), 'Summer', 'Fall'))))
+
+#Compare total orders and shipments by season 
+orders %>% group_by(Season.Ship) %>% summarise(sum(Quantity))
+orders %>% group_by(Season.Order) %>% summarise(sum(Quantity))
+
+orders %>% group_by(Category, Season.Order) %>% summarise(Total = sum(Quantity)) %>%
+ggplot(aes(x=Category, y=Total)) + geom_bar(aes(fill = Season.Order), position='dodge', 
+        stat='identity')
+```
 
 ### Problem 3: Why did customers make returns?
 - Your manager required you to give a brief report (**Plots + Interpretations**) on returned orders.

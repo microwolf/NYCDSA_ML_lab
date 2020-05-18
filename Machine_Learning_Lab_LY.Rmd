@@ -37,12 +37,16 @@ We will use Github for team collaboration and it can be broken down into followi
 Check **"Profit"** and **"Sales"** in the dataset, convert these two columns to numeric type. 
 ```{r}
 setwd("~/Dropbox/nycdsa/exams/Machine_Learing_Lab/Machine_Learning_Lab")
-library(tidyverse)
+
 orders = read.csv("data/Orders.csv", stringsAsFactors = F)
 returns = read.csv("data/Returns.csv", stringsAsFactors = F)
 ```
 ```{r}
+require(tidyverse)
+require(lubridate)
 ```
+
+
 ### Problem 2: Inventory Management
 - Retailers that depend on seasonal shoppers have a particularly challenging job when it comes to inventory management. Your manager is making plans for next year's inventory.
 - He wants you to answer the following questions:
@@ -50,7 +54,14 @@ returns = read.csv("data/Returns.csv", stringsAsFactors = F)
     2. Is the seasonal trend the same for different categories?
 
 - ***Hint:*** For each order, it has an attribute called `Quantity` that indicates the number of product in the order. If an order contains more than one product, there will be multiple observations of the same order.
-
+```{r}
+orders$Order.Date = as.Date(orders$Order.Date, "%m/%d/%y")
+w = c(12, 1, 2)
+r = c(3, 4, 5)
+s = c(6, 7, 8)
+f = c(9, 10, 11)
+switch('w', w, r, s, f)
+```
 
 ### Problem 3: Why did customers make returns?
 - Your manager required you to give a brief report (**Plots + Interpretations**) on returned orders.
