@@ -28,8 +28,8 @@ We will use Github for team collaboration and it can be broken down into followi
 - To understand fork, pull request and branch better, review [this video](https://youtu.be/_NrSWLQsDL4) in 1.25X speed.
 ```{r}
 #Load datasets
-orders <- read.csv('orders.csv', stringsAsFactors=FALSE)
-returns <- read.csv('returns.csv', stringsAsFactors=FALSE)
+orders <- read.csv('data/orders.csv', stringsAsFactors=FALSE)
+returns <- read.csv('data/returns.csv', stringsAsFactors=FALSE)
 
 ```
 ## Part I: Preprocessing and EDA
@@ -102,7 +102,34 @@ ggplot(aes(x=Category, y=Total)) + geom_bar(aes(fill = Season.Order), position='
 
 - ***Hint:*** Merge the **Returns** dataframe with the **Orders** dataframe using `Order.ID`.
 
+```{r}
+# 3.1 profit lost to returns
+# merge by returns 
+both = left_join(orders, returns, by = "Order.ID")
+just_return = right_join(orders, returns, by = "Order.ID")
+sort(both)
+returned = filter(both, Returned == "Yes")
 
+returned %>% group_by(year(Order.Date)) %>% summarise(sum(Profit)) 
+# only add positive profits?
+
+# 3.2 customer returns
+k = returned %>%  group_by(Customer.ID, Customer.Name) %>% summarise(total = n()) 
+
+k %>% filter(total > 1)
+k %>% filter(total > 5) %>% arrange(desc(total))
+
+# 3.3 most return region
+m = returned %>%  group_by(Region.x) %>% summarise(total = n())
+m %>% arrange(desc(total))
+
+# 3.4 sub category
+n = returned %>%  group_by(Category) %>% summarise(total = n())
+n %>% arrange(desc(total))
+
+i = returned %>%  group_by(Sub.Category) %>% summarise(total = n())
+i %>% arrange(desc(total))
+```
 ## Part II: Machine Learning and Business Use Case
 
 Now your manager has a basic understanding of why customers returned orders. Next, he wants you to use machine learning to predict which orders are most likely to be returned. In this part, you will generate several features based on our previous findings and your manager's requirements.
